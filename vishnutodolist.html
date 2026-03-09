@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Smart Productivity To-Do App</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+padding:20px;
+display:flex;
+justify-content:center;
+background:#f2f2f2;
+}
+
+.dark{
+background:#1e1e1e;
+color:white;
+}
+
+.container{
+width:500px;
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+.dark .container{
+background:#2c2c2c;
+}
+
+input,select,button{
+padding:7px;
+margin:4px;
+}
+
+button{
+cursor:pointer;
+}
+
+.task{
+display:flex;
+justify-content:space-between;
+padding:6px;
+margin-top:6px;
+background:#f5f5f5;
+border-radius:6px;
+}
+
+.dark .task{
+background:#3c3c3c;
+}
+
+.completed{
+text-decoration:line-through;
+color:gray;
+}
+
+.progress{
+height:10px;
+background:#ddd;
+border-radius:6px;
+margin-top:10px;
+}
+
+.progressBar{
+height:10px;
+background:green;
+width:0%;
+border-radius:6px;
+}
+
+.priorityHigh{color:red;font-weight:bold;}
+.priorityMedium{color:orange;font-weight:bold;}
+.priorityLow{color:green;font-weight:bold;}
+
+.today{
+background:#d4ffd4;
+}
+
+.dark .today{
+background:#355f35;
+}
+
+.quote{
+font-style:italic;
+margin-bottom:10px;
+}
+
+.streak{
+font-weight:bold;
+margin-top:6px;
+}
+
+@media(max-width:600px){
+.container{width:95%;}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Smart Dream To-Do App</h2>
+
+<div class="quote" id="quote"></div>
+
+<button onclick="toggleDark()">🌙 Dark Mode</button>
+
+<br>
+
+<input id="taskInput" placeholder="Task">
+<input type="date" id="taskDate">
+
+<select id="priority">
+<option value="High">High Priority</option>
+<option value="Medium">Medium</option>
+<option value="Low">Low</option>
+</select>
+
+<select id="category">
+<option value="Study">Study</option>
+<option value="Coding">Coding</option>
+<option value="Health">Health</option>
+<option value="Personal">Personal</option>
+</select>
+
+<button onclick="addTask()">Add</button>
+
+<br>
+
+<input id="search" placeholder="Search task" onkeyup="displayTasks()">
+
+<div class="progress">
+<div class="progressBar" id="progressBar"></div>
+</div>
+
+<div id="score"></div>
+
+<div class="streak" id="streak"></div>
+
+<button onclick="downloadTasks()">Download Report</button>
+
+<div id="taskList"></div>
+
+</div>
+
+<script>
+
+let tasks=JSON.parse(localStorage.getItem("tasks"))||[];
+let streak=localStorage.getItem("streak")||0;
+
+let quotes=[
+"Dream big. Work hard. Stay focused.",
+"My dreams are big because my parents believe in me.",
+"Success begins with daily discipline.",
+"Your future is created by what you do today.",
+"Small progress each day leads to big success."
+];
+
+document.getElementById("quote").innerText=
+quotes[Math.floor(Math.random()*quotes.length)];
+
+function save(){
+localStorage.setItem("tasks",JSON.stringify(tasks));
+}
+
+function addTask(){
+
+let text=document.getElementById("taskInput").value;
+let date=document.getElementById("taskDate").value;
+let priority=document.getElementById("priority").value;
+let category=document.getElementById("category").value;
+
+if(text==="")return;
+
+tasks.push({
+text,
+date,
+priority,
+category,
+completed:false
+});
+
+save();
+displayTasks();
+
+document.getElementById("taskInput").value="";
+}
+
+function toggleTask(i){
+tasks[i].completed=!tasks[i].completed;
+save();
+displayTasks();
+}
+
+function deleteTask(i){
+tasks.splice(i,1);
+save();
+displayTasks();
+}
+
+function updateProgress(){
+
+let completed=tasks.filter(t=>t.completed).length;
+
+let percent=tasks.length?completed/tasks.length*100:0;
+
+document.getElementById("progressBar").style.width=percent+"%";
+
+document.getElementById("score").innerText=
+"Productivity Score: "+Math.round(percent)+"% ("+
+completed+"/"+tasks.length+" tasks)";
+}
+
+function updateStreak(){
+
+let today=new Date().toISOString().split("T")[0];
+
+let completedToday=tasks.filter(t=>t.date===today && t.completed).length;
+
+if(completedToday>0){
+streak++;
+localStorage.setItem("streak",streak);
+}
+
+document.getElementById("streak").innerText="🔥 Streak: "+streak+" days";
+}
+
+function displayTasks(){
+
+let list=document.getElementById("taskList");
+list.innerHTML="";
+
+let today=new Date().toISOString().split("T")[0];
+let search=document.getElementById("search").value.toLowerCase();
+
+tasks.forEach((t,i)=>{
+
+if(!t.text.toLowerCase().includes(search))return;
+
+let div=document.createElement("div");
+div.className="task";
+
+if(t.date===today)div.classList.add("today");
+
+let left=document.createElement("div");
+
+let check=document.createElement("input");
+check.type="checkbox";
+check.checked=t.completed;
+check.onclick=()=>toggleTask(i);
+
+let span=document.createElement("span");
+
+span.innerHTML=
+t.text+" ("+t.date+") ["+t.category+"] ";
+
+if(t.priority==="High")span.classList.add("priorityHigh");
+if(t.priority==="Medium")span.classList.add("priorityMedium");
+if(t.priority==="Low")span.classList.add("priorityLow");
+
+if(t.completed)span.classList.add("completed");
+
+left.appendChild(check);
+left.appendChild(span);
+
+let del=document.createElement("button");
+del.innerText="Delete";
+del.onclick=()=>deleteTask(i);
+
+div.appendChild(left);
+div.appendChild(del);
+
+list.appendChild(div);
+
+});
+
+updateProgress();
+updateStreak();
+
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+
+function downloadTasks(){
+
+let text="TASK REPORT\n\n";
+
+tasks.forEach(t=>{
+text+=t.text+" | "+t.date+" | "+t.priority+" | "+t.category+"\n";
+});
+
+let blob=new Blob([text],{type:"text/plain"});
+let link=document.createElement("a");
+
+link.href=URL.createObjectURL(blob);
+link.download="tasks_report.txt";
+link.click();
+}
+
+displayTasks();
+
+</script>
+
+</body>
+</html>
