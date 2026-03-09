@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dream To-Do List</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #faf6f0;
+    --warm: #f0e8d8;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --dark: #1a1410;
+    --mid: #5a4a38;
+    --soft: #8a7560;
+    --green: #4a7c59;
+    --green-light: #d4ead9;
+    --red: #9c3d3d;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 10%, rgba(201,168,76,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 90%, rgba(74,124,89,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, rgba(240,232,216,0.5) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* Decorative corner flourishes */
+  body::after {
+    content: '✦';
+    position: fixed;
+    top: 30px; right: 40px;
+    font-size: 28px;
+    color: var(--gold);
+    opacity: 0.3;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1) rotate(0deg); }
+    50% { opacity: 0.5; transform: scale(1.1) rotate(20deg); }
+  }
+
+  .page-wrap {
+    width: 100%;
+    max-width: 520px;
+    animation: fadeUp 0.7s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .header .eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .header .eyebrow::before,
+  .header .eyebrow::after {
+    content: '';
+    height: 1px;
+    width: 40px;
+    background: linear-gradient(to right, transparent, var(--gold));
+  }
+  .header .eyebrow::after { background: linear-gradient(to left, transparent, var(--gold)); }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .header h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .header .quote {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--soft);
+    max-width: 360px;
+    margin: 0 auto;
+    line-height: 1.6;
+    padding: 12px 0;
+    border-top: 1px solid rgba(201,168,76,0.2);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+
+  /* Card */
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow:
+      0 2px 4px rgba(26,20,16,0.04),
+      0 8px 24px rgba(26,20,16,0.08),
+      0 0 0 1px rgba(201,168,76,0.1);
+  }
+
+  /* Input area */
+  .input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .input-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .input-wrap .icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--soft);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  input[type="text"], input[type="date"] {
+    width: 100%;
+    padding: 11px 14px 11px 36px;
+    border: 1.5px solid var(--warm);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--dark);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+
+  input[type="text"]:focus, input[type="date"]:focus {
+    border-color: var(--gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+  }
+
+  input[type="date"] {
+    flex-shrink: 0;
+    width: 155px;
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--dark) 0%, #3a2e22 100%);
+    color: var(--gold-light);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .add-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(26,20,16,0.2);
+  }
+
+  .add-btn:active { transform: translateY(0); }
+
+  /* Progress */
+  .progress-section {
+    margin-bottom: 22px;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+
+  .progress-count {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--dark);
+  }
+
+  .progress-count span {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--warm);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--green) 0%, #6bb87e 100%);
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: var(--soft);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--warm);
+  }
+
+  /* Task list */
+  #taskList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  #taskList::-webkit-scrollbar { width: 4px; }
+  #taskList::-webkit-scrollbar-track { background: transparent; }
+  #taskList::-webkit-scrollbar-thumb { background: var(--warm); border-radius: 99px; }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--cream);
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s, opacity 0.3s;
+    animation: slideIn 0.3s ease both;
+    cursor: default;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .task-item:hover { border-color: rgba(201,168,76,0.25); background: #fff; }
+
+  .task-item.today-task {
+    background: var(--green-light);
+    border-color: rgba(74,124,89,0.2);
+  }
+
+  .task-item.today-task:hover { border-color: rgba(74,124,89,0.4); }
+
+  .task-item.done {
+    opacity: 0.55;
+  }
+
+  /* Custom checkbox */
+  .check-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  .check-wrap input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+  }
+
+  .check-box {
+    position: absolute;
+    inset: 0;
+    border-radius: 5px;
+    border: 1.5px solid #c8b89a;
+    background: #fff;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .check-box::after {
+    content: '✓';
+    font-size: 11px;
+    color: #fff;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.15s;
+  }
+
+  .check-wrap input:checked ~ .check-box {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .check-wrap input:checked ~ .check-box::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Task text */
+  .task-body { flex: 1; min-width: 0; }
+
+  .task-text {
+    font-size: 14px;
+    color: var(--dark);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+  }
+
+  .task-item.done .task-text {
+    text-decoration: line-through;
+    color: var(--soft);
+  }
+
+  .task-date {
+    font-size: 11px;
+    color: var(--soft);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .today-badge {
+    background: var(--green);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 99px;
+    margin-left: 4px;
+  }
+
+  /* Delete button */
+  .del-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: 1.5px solid transparent;
+    background: transparent;
+    color: #c8b89a;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    opacity: 0;
+  }
+
+  .task-item:hover .del-btn { opacity: 1; }
+
+  .del-btn:hover {
+    background: #fde8e8;
+    border-color: #f4b8b8;
+    color: var(--red);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--soft);
+  }
+
+  .empty-state .star { font-size: 28px; margin-bottom: 10px; opacity: 0.4; }
+
+  .empty-state p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 15px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div class="header">
+    <div class="eyebrow">Your Journey</div>
+    <h1>Dream<br><em>To-Do List</em></h1>
+    <p class="quote">"My dreams are big because my parents believe in me."</p>
+  </div>
+
+  <div class="card">
+    <div class="input-area">
+      <div class="input-row">
+        <div class="input-wrap" style="flex:1">
+          <span class="icon">✦</span>
+          <input type="text" id="taskInput" placeholder="What will you accomplish?">
+        </div>
+        <div class="input-wrap" style="width:155px">
+          <span class="icon">◷</span>
+          <input type="date" id="taskDate">
+        </div>
+      </div>
+      <button class="add-btn" onclick="addTask()">
+        <span>＋</span> Add to My Dreams
+      </button>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-meta">
+        <span class="progress-label">Progress</span>
+        <span class="progress-count" id="taskCounter"><span>0</span> / 0 completed</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+    </div>
+
+    <div class="divider">Tasks</div>
+
+    <div id="taskList"></div>
+  </div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem("dreamtasks") || "[]");
+
+  function saveTasks() {
+    localStorage.setItem("dreamtasks", JSON.stringify(tasks));
+  }
+
+  function addTask() {
+    const text = document.getElementById("taskInput").value.trim();
+    const date = document.getElementById("taskDate").value;
+    if (!text) {
+      document.getElementById("taskInput").focus();
+      return;
+    }
+    tasks.push({ text, date, completed: false });
+    saveTasks();
+    displayTasks();
+    document.getElementById("taskInput").value = "";
+    document.getElementById("taskInput").focus();
+  }
+
+  document.getElementById("taskInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") addTask();
+  });
+
+  function toggleTask(i) {
+    tasks[i].completed = !tasks[i].completed;
+    saveTasks();
+    displayTasks();
+  }
+
+  function deleteTask(i) {
+    const item = document.querySelectorAll(".task-item")[i];
+    if (item) {
+      item.style.opacity = "0";
+      item.style.transform = "translateX(20px)";
+      item.style.transition = "all 0.25s ease";
+      setTimeout(() => {
+        tasks.splice(i, 1);
+        saveTasks();
+        displayTasks();
+      }, 220);
+    }
+  }
+
+  function updateProgress() {
+    const done = tasks.filter(t => t.completed).length;
+    const total = tasks.length;
+    const pct = total === 0 ? 0 : (done / total) * 100;
+    document.getElementById("progressBar").style.width = pct + "%";
+    document.getElementById("taskCounter").innerHTML =
+      `<span>${done}</span> / ${total} completed`;
+  }
+
+  function formatDate(d) {
+    if (!d) return "";
+    const [y, m, day] = d.split("-");
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${months[+m-1]} ${+day}, ${y}`;
+  }
+
+  function displayTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    if (tasks.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="star">✦</div>
+          <p>Your dreams await — add your first task.</p>
+        </div>`;
+      updateProgress();
+      return;
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+
+    tasks.forEach((task, i) => {
+      const div = document.createElement("div");
+      div.className = "task-item" +
+        (task.date === today ? " today-task" : "") +
+        (task.completed ? " done" : "");
+
+      const isToday = task.date === today;
+
+      div.innerHTML = `
+        <label class="check-wrap">
+          <input type="checkbox" ${task.completed ? "checked" : ""}>
+          <div class="check-box"></div>
+        </label>
+        <div class="task-body">
+          <div class="task-text">${task.text}</div>
+          ${task.date ? `<div class="task-date">◷ ${formatDate(task.date)}${isToday ? '<span class="today-badge">Today</span>' : ''}</div>` : ''}
+        </div>
+        <button class="del-btn" title="Remove task">✕</button>
+      `;
+
+      div.querySelector("input[type='checkbox']").addEventListener("change", () => toggleTask(i));
+      div.querySelector(".del-btn").addEventListener("click", () => deleteTask(i));
+
+      list.appendChild(div);
+    });
+
+    updateProgress();
+  }
+
+  displayTasks();
+</script>
+</body>
+</html>
