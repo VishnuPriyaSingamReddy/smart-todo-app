@@ -1,14 +1,21 @@
 {
 "name": "Smart To-Do List",
 "short_name": "ToDo",
+"description": "A simple productivity app to manage tasks, track progress, and stay organized.",
 "start_url": "index.html",
 "display": "standalone",
 "background_color": "#667eea",
 "theme_color": "#667eea",
+"orientation": "portrait",
 "icons": [
 {
 "src": "icon.png",
 "sizes": "192x192",
+"type": "image/png"
+},
+{
+"src": "icon.png",
+"sizes": "512x512",
 "type": "image/png"
 }
 ]
