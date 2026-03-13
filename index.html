@@ -30,7 +30,7 @@ padding:30px;
 }
 
 .container{
-width:520px;
+width:700px;
 background:rgba(255,255,255,0.15);
 backdrop-filter:blur(15px);
 border-radius:20px;
@@ -41,14 +41,7 @@ color:white;
 
 h1{
 text-align:center;
-margin-bottom:8px;
-}
-
-.quote{
-text-align:center;
-opacity:0.85;
-margin-bottom:25px;
-font-style:italic;
+margin-bottom:10px;
 }
 
 .inputBox{
@@ -76,7 +69,14 @@ font-weight:bold;
 }
 
 button:hover{
-opacity:0.85;
+opacity:0.9;
+}
+
+.weekDay{
+margin-top:15px;
+padding:10px;
+background:rgba(255,255,255,0.15);
+border-radius:10px;
 }
 
 .task{
@@ -84,9 +84,9 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 background:rgba(255,255,255,0.25);
-padding:10px;
-border-radius:8px;
-margin-top:8px;
+padding:8px;
+border-radius:6px;
+margin-top:6px;
 }
 
 .completed{
@@ -94,8 +94,12 @@ text-decoration:line-through;
 opacity:0.6;
 }
 
-.today{
-border-left:4px solid #00ffae;
+.deleteBtn{
+background:#ff4d6d;
+border:none;
+padding:5px 10px;
+border-radius:6px;
+cursor:pointer;
 }
 
 .progress{
@@ -118,27 +122,8 @@ margin-top:6px;
 font-size:14px;
 }
 
-.calendar{
-margin-top:20px;
-background:rgba(255,255,255,0.2);
-padding:12px;
-border-radius:10px;
-}
-
 .chartBox{
-margin-top:20px;
-}
-
-.deleteBtn{
-background:#ff4d6d;
-border:none;
-padding:5px 10px;
-border-radius:6px;
-cursor:pointer;
-}
-
-.deleteBtn:hover{
-opacity:0.8;
+margin-top:25px;
 }
 
 </style>
@@ -151,10 +136,6 @@ opacity:0.8;
 
 <h1>Smart To-Do List</h1>
 
-<div class="quote">
-Stay consistent. Small tasks lead to big success.
-</div>
-
 <div class="inputBox">
 
 <input id="taskInput" placeholder="Enter your task">
@@ -166,29 +147,16 @@ Stay consistent. Small tasks lead to big success.
 </div>
 
 <div class="progress">
-
 <div class="progressBar" id="progressBar"></div>
-
 </div>
 
 <div class="counter" id="taskCounter"></div>
 
-<div id="taskList"></div>
-
-<div class="calendar">
-
-<h3>📅 Task Calendar</h3>
-
-<div id="calendarView"></div>
-
-</div>
+<div id="weekView"></div>
 
 <div class="chartBox">
-
-<h3>📊 Weekly Productivity</h3>
-
+<h3>Weekly Productivity</h3>
 <canvas id="chart"></canvas>
-
 </div>
 
 </div>
@@ -197,24 +165,12 @@ Stay consistent. Small tasks lead to big success.
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-if(Notification.permission !== "granted"){
-Notification.requestPermission();
-}
-
-function notify(message){
-
-if(Notification.permission==="granted"){
-new Notification("Task Reminder",{body:message});
-}
-
-}
-
 function addTask(){
 
 let text=document.getElementById("taskInput").value;
 let date=document.getElementById("taskDate").value;
 
-if(text==="")return;
+if(text==="") return;
 
 tasks.push({
 text,
@@ -223,11 +179,9 @@ completed:false
 });
 
 save();
-
 display();
 
 document.getElementById("taskInput").value="";
-
 }
 
 function toggle(i){
@@ -235,9 +189,7 @@ function toggle(i){
 tasks[i].completed=!tasks[i].completed;
 
 save();
-
 display();
-
 }
 
 function del(i){
@@ -245,9 +197,7 @@ function del(i){
 tasks.splice(i,1);
 
 save();
-
 display();
-
 }
 
 function save(){
@@ -269,15 +219,86 @@ done+" / "+tasks.length+" tasks completed";
 
 }
 
-function renderCalendar(){
+function display(){
 
-let html="";
+let container=document.getElementById("weekView");
 
-tasks.forEach(t=>{
-html+=`<div>${t.date} → ${t.text}</div>`;
+container.innerHTML="";
+
+let days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+let today=new Date();
+
+let start=new Date(today);
+
+start.setDate(today.getDate()-today.getDay());
+
+for(let i=0;i<7;i++){
+
+let date=new Date(start);
+
+date.setDate(start.getDate()+i);
+
+let dateStr=date.toISOString().split("T")[0];
+
+let dayBox=document.createElement("div");
+
+dayBox.className="weekDay";
+
+dayBox.innerHTML="<h3>"+days[i]+" ("+dateStr+")</h3>";
+
+tasks.forEach((t,index)=>{
+
+if(t.date===dateStr){
+
+let task=document.createElement("div");
+
+task.className="task";
+
+let left=document.createElement("div");
+
+let check=document.createElement("input");
+
+check.type="checkbox";
+
+check.checked=t.completed;
+
+check.onclick=()=>toggle(index);
+
+let span=document.createElement("span");
+
+span.innerHTML=" "+t.text;
+
+if(t.completed) span.classList.add("completed");
+
+left.appendChild(check);
+
+left.appendChild(span);
+
+let delBtn=document.createElement("button");
+
+delBtn.innerText="Delete";
+
+delBtn.className="deleteBtn";
+
+delBtn.onclick=()=>del(index);
+
+task.appendChild(left);
+
+task.appendChild(delBtn);
+
+dayBox.appendChild(task);
+
+}
+
 });
 
-document.getElementById("calendarView").innerHTML=html;
+container.appendChild(dayBox);
+
+}
+
+updateProgress();
+renderChart();
 
 }
 
@@ -294,7 +315,7 @@ data[day]++;
 }
 });
 
-if(chart)chart.destroy();
+if(chart) chart.destroy();
 
 chart=new Chart(document.getElementById("chart"),{
 
@@ -310,80 +331,6 @@ backgroundColor:"#00ffae"
 }
 
 });
-
-}
-
-function checkDeadline(){
-
-let today=new Date().toISOString().split("T")[0];
-
-tasks.forEach(t=>{
-if(t.date && t.date<=today && !t.completed){
-notify("Deadline reached: "+t.text);
-}
-});
-
-}
-
-setInterval(checkDeadline,60000);
-
-function display(){
-
-let list=document.getElementById("taskList");
-
-list.innerHTML="";
-
-let today=new Date().toISOString().split("T")[0];
-
-tasks.forEach((t,i)=>{
-
-let div=document.createElement("div");
-
-div.className="task";
-
-if(t.date===today)div.classList.add("today");
-
-let left=document.createElement("div");
-
-let check=document.createElement("input");
-
-check.type="checkbox";
-
-check.checked=t.completed;
-
-check.onclick=()=>toggle(i);
-
-let span=document.createElement("span");
-
-span.innerHTML=" "+t.text+" ("+t.date+")";
-
-if(t.completed)span.classList.add("completed");
-
-left.appendChild(check);
-
-left.appendChild(span);
-
-let delBtn=document.createElement("button");
-
-delBtn.innerText="Delete";
-
-delBtn.className="deleteBtn";
-
-delBtn.onclick=()=>del(i);
-
-div.appendChild(left);
-
-div.appendChild(delBtn);
-
-list.appendChild(div);
-
-});
-
-updateProgress();
-
-renderCalendar();
-
-renderChart();
 
 }
 
